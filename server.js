@@ -66,6 +66,11 @@ app.listen(PORT, () => {
  */
 
 
+
+
+
+/* 
+
 const express = require('express');
 const fs = require('fs');
 
@@ -85,20 +90,21 @@ const upload = multer({ storage: storage });
 // Endpoint to upload HTML file and convert to PDF
 
 
-app.get("/", async (req, res) => {
-  try {
-      const filePath = path.join(__dirname, "htmlToPdf.html");
-      res.sendFile(filePath);
-  } catch (error) {
-      console.error("Error sending file:", error);
-      res.status(500).send("Error sending the file");
-  }
-});
+// app.get("/", async (req, res) => {
+//   try {
+//       const filePath = path.join(__dirname, "htmlToPdf.html");
+//       res.sendFile(filePath);
+//   } catch (error) {
+//       console.error("Error sending file:", error);
+//       res.status(500).send("Error sending the file");
+//   }
+// });
 
 
 app.post('/upload', upload.single('htmlFile'), async (req, res) => {
   try {
     const htmlBuffer = req.file.buffer.toString('utf-8');
+
     const { cssStyles } = req.body;
 
     const options = {
@@ -132,6 +138,76 @@ app.post('/upload', upload.single('htmlFile'), async (req, res) => {
 });
 
 const PORT =  3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+ */
+
+
+
+const express = require('express');
+const pdf = require('html-pdf');
+const app = express();
+const fileUpload = require('express-fileupload');
+const fs = require("fs")
+const path = require("path")
+app.use(fileUpload());
+
+
+app.get("/", async (req, res) => {
+    try {
+        const filePath = path.join(__dirname, "htmlToPdf.html");
+        res.sendFile(filePath);
+    } catch (error) {
+        console.error("Error sending file:", error);
+        res.status(500).send("Error sending the file");
+    }
+  });
+  
+
+
+
+app.post('/upload', async (req, res) => {
+  try {
+    if (!req.files || !req.files.htmlFile) {
+      return res.status(400).send('No files were uploaded.');
+    }
+
+    const htmlBuffer = req.files.htmlFile.data.toString('utf-8');
+    const { cssStyles } = req.body;
+
+    const options = {
+      format: 'Letter',
+      border: '10mm',
+    };
+
+    const finalHtml = `<style>${cssStyles}</style>${htmlBuffer}`;
+
+    pdf.create(finalHtml, options).toStream((err, pdfStream) => {
+      if (err) {
+        console.error('Error generating PDF:', err);
+        res.status(500).send('Error generating PDF');
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="generated.pdf"');
+
+      pdfStream.pipe(res);
+
+      pdfStream.on('end', () => {
+        console.log('PDF created and sent successfully');
+        res.end();
+      });
+    });
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    res.status(500).send('Error generating PDF');
+  }
+});
+
+const PORT = 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
