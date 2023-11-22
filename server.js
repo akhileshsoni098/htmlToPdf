@@ -225,11 +225,15 @@ app.listen(PORT, () => {
 
 const express = require('express');
 const pdf = require('html-pdf');
+const cors = require('cors');
 const app = express();
+
 const fileUpload = require('express-fileupload');
 const fs = require('fs');
 const path = require('path');
+
 app.use(express.json());
+app.use(cors());
 app.use(fileUpload());
 
 app.get("/", async (req, res) => {
