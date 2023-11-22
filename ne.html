@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML to PDF Converter</title>
+</head>
+<body>
+  <h1>Convert HTML to PDF</h1>
+  
+  <form id="convertForm">
+    <label for="htmlCode">HTML Code:</label>
+    <textarea id="htmlCode" name="html" rows="10" cols="50"></textarea>
+    
+    <label for="cssStyles">CSS Styles:</label>
+    <textarea id="cssStyles" name="cssStyles" rows="6" cols="50"></textarea>
+    
+    <button type="submit">Convert to PDF</button>
+  </form>
+
+  <div id="pdfContainer"></div>
+
+  <script>
+    document.getElementById('convertForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const htmlCode = document.getElementById('htmlCode').value;
+      const cssStyles = document.getElementById('cssStyles').value;
+
+      try {
+        const response = await fetch('/convert', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ html: htmlCode, cssStyles: cssStyles }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Error generating PDF');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        // Display the generated PDF
+        const pdfContainer = document.getElementById('pdfContainer');
+        const embed = document.createElement('embed');
+        embed.setAttribute('src', objectUrl);
+        embed.setAttribute('type', 'application/pdf');
+        embed.setAttribute('width', '100%');
+        embed.setAttribute('height', '600px');
+        pdfContainer.innerHTML = '';
+        pdfContainer.appendChild(embed);
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    });
+  </script>
+</body>
+</html>
