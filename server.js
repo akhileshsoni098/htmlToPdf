@@ -222,6 +222,79 @@ app.listen(PORT, () => {
 
 
 //////////////////////////////////////// working according to Sachin ////////////////////////////
+/* 
+const express = require('express');
+const pdf = require('html-pdf');
+const cors = require('cors');
+const app = express();
+
+const fileUpload = require('express-fileupload');
+const fs = require('fs');
+const path = require('path');
+
+app.use(express.json());
+app.use(cors());
+app.use(fileUpload());
+
+app.get("/", async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "new.html");
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Error sending file:", error);
+    res.status(500).send("Error sending the file");
+  }
+});
+
+app.post('/convert', async (req, res) => {
+  try {
+    const { html, cssStyles } = req.body;
+
+    if (!html || !cssStyles) {
+      return res.status(400).send('HTML code and CSS styles are required.');
+    }
+
+    const options = {
+      format: 'Letter',
+      border: '10mm',
+    };
+
+    const finalHtml = `<style>${cssStyles}</style>${html}`;
+
+    pdf.create(finalHtml, options).toStream((err, pdfStream) => {
+      if (err) {
+        console.error('Error generating PDF:', err);
+        res.status(500).send('Error generating PDF');
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="generated.pdf"');
+
+      pdfStream.pipe(res);
+
+      pdfStream.on('end', () => {
+        console.log('PDF created and sent successfully');
+        res.end();
+      });
+    });
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    res.status(500).send('Error generating PDF');
+  }
+});
+
+const PORT = 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+ */
+
+
+
+
+/* 
 
 const express = require('express');
 const pdf = require('html-pdf');
@@ -289,3 +362,86 @@ const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+ */
+
+
+
+
+
+
+
+
+const express = require('express');
+const pdf = require('html-pdf');
+const cors = require('cors');
+const app = express();
+
+const fileUpload = require('express-fileupload');
+const fs = require('fs');
+const path = require('path');
+
+app.use(express.json());
+app.use(cors());
+app.use(fileUpload());
+
+// app.get("/", async (req, res) => {
+//   try {
+//     const filePath = path.join(__dirname, "new.html");
+//     res.sendFile(filePath);
+//   } catch (error) {
+//     console.error("Error sending file:", error);
+//     res.status(500).send("Error sending the file");
+//   }
+// });
+
+app.post('/convert', async (req, res) => {
+  try {
+    const { html, cssStyles } = req.body;
+
+    if (!html || !cssStyles) {
+      return res.status(400).send('HTML code and CSS styles are required.');
+    }
+
+    const options = {
+      format: 'Letter',
+      border: '10mm',
+    };
+
+    const finalHtml = `<style>${cssStyles}</style>${html}`;
+
+    pdf.create(finalHtml, options).toStream((err, pdfStream) => {
+      if (err) {
+        console.error('Error generating PDF:', err);
+        res.status(500).send('Error generating PDF');
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="generated.pdf"');
+
+      pdfStream.pipe(res);
+
+      pdfStream.on('end', () => {
+        console.log('PDF created and sent successfully');
+        res.end();
+      });
+    });
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    res.status(500).send('Error generating PDF');
+  }
+});
+
+const PORT = 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+
+
+
+
+
+
+

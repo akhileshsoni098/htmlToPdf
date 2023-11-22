@@ -3,57 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <title>HTML to PDF Converter</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/theme/material.min.css">
+  <style>
+    .CodeMirror {
+      border: 1px solid #ccc;
+      height: 300px;
+    }
+  </style>
 </head>
 <body>
   <h1>Convert HTML to PDF</h1>
   
-  <form id="convertForm">
+  <form id="convertForm" action="/convert" method="post">
     <label for="htmlCode">HTML Code:</label>
-    <textarea id="htmlCode" name="html" rows="10" cols="50"></textarea>
+    <textarea id="htmlCode" name="html" required></textarea>
     
     <label for="cssStyles">CSS Styles:</label>
-    <textarea id="cssStyles" name="cssStyles" rows="6" cols="50"></textarea>
+    <textarea id="cssStyles" name="cssStyles" required></textarea>
     
     <button type="submit">Convert to PDF</button>
   </form>
 
   <div id="pdfContainer"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.1/mode/css/css.min.js"></script>
   <script>
-    document.getElementById('convertForm').addEventListener('submit', async function(event) {
+    const htmlCodeEditor = CodeMirror.fromTextArea(document.getElementById("htmlCode"), {
+      lineNumbers: true,
+      mode: "htmlmixed",
+      theme: "material"
+    });
+
+    const cssStylesEditor = CodeMirror.fromTextArea(document.getElementById("cssStyles"), {
+      lineNumbers: true,
+      mode: "css",
+      theme: "material"
+    });
+
+    document.getElementById('convertForm').addEventListener('submit', function(event) {
       event.preventDefault();
 
-      const htmlCode = document.getElementById('htmlCode').value;
-      const cssStyles = document.getElementById('cssStyles').value;
+      const htmlCode = htmlCodeEditor.getValue();
+      const cssStyles = cssStylesEditor.getValue();
 
-      try {
-        const response = await fetch('/convert', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ html: htmlCode, cssStyles: cssStyles }),
-        });
+      const formData = new FormData();
+      formData.append('html', htmlCode);
+      formData.append('cssStyles', cssStyles);
 
-        if (!response.ok) {
-          throw new Error('Error generating PDF');
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/convert');
+      xhr.responseType = 'blob';
+
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          const objectUrl = URL.createObjectURL(xhr.response);
+          const pdfContainer = document.getElementById('pdfContainer');
+          const embed = document.createElement('embed');
+          embed.setAttribute('src', objectUrl);
+          embed.setAttribute('type', 'application/pdf');
+          embed.setAttribute('width', '100%');
+          embed.setAttribute('height', '600px');
+          pdfContainer.innerHTML = '';
+          pdfContainer.appendChild(embed);
+        } else {
+          console.error('Error generating PDF:', xhr.statusText);
         }
+      };
 
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-
-        // Display the generated PDF
-        const pdfContainer = document.getElementById('pdfContainer');
-        const embed = document.createElement('embed');
-        embed.setAttribute('src', objectUrl);
-        embed.setAttribute('type', 'application/pdf');
-        embed.setAttribute('width', '100%');
-        embed.setAttribute('height', '600px');
-        pdfContainer.innerHTML = '';
-        pdfContainer.appendChild(embed);
-      } catch (error) {
-        console.error('Error:', error.message);
-      }
+      xhr.send(formData);
     });
   </script>
 </body>
