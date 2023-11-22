@@ -370,7 +370,7 @@ app.listen(PORT, () => {
 
 
 
-
+/* 
 const express = require('express');
 const pdf = require('html-pdf');
 const cors = require('cors');
@@ -384,15 +384,15 @@ app.use(express.json());
 app.use(cors());
 app.use(fileUpload());
 
-// app.get("/", async (req, res) => {
-//   try {
-//     const filePath = path.join(__dirname, "new.html");
-//     res.sendFile(filePath);
-//   } catch (error) {
-//     console.error("Error sending file:", error);
-//     res.status(500).send("Error sending the file");
-//   }
-// });
+app.get("/", async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "new.html");
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Error sending file:", error);
+    res.status(500).send("Error sending the file");
+  }
+});
 
 app.post('/convert', async (req, res) => {
   try {
@@ -445,3 +445,72 @@ app.listen(PORT, () => {
 
 
 
+ */
+
+
+
+
+const puppeteer = require('puppeteer');
+const express = require('express');
+const bodyParser = require('body-parser');
+const fs = require("fs")
+const path = require("path")
+const app = express();
+
+// Middleware to parse JSON body
+app.use(bodyParser.json());
+
+
+app.get("/", async (req, res) => {
+  try {
+    const filePath = path.join(__dirname, "new.html");
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Error sending file:", error);
+    res.status(500).send("Error sending the file");
+  }
+});
+
+
+app.post('/convert', async (req, res) => {
+  try {
+    const { html, cssStyles } = req.body;
+
+    if (!html || !cssStyles) {
+      return res.status(400).send('HTML code and CSS styles are required.');
+    }
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    // Set content to the page
+    await page.setContent(`<style>${cssStyles}</style>${html}`);
+
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'Letter',
+      margin: {
+        top: '10mm',
+        bottom: '10mm',
+        left: '10mm',
+        right: '10mm',
+      },
+    });
+
+    await browser.close();
+
+    // Send PDF as a response
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="generated.pdf"');
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    res.status(500).send('Error generating PDF');
+  }
+});
+
+const PORT = 3001;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
