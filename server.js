@@ -381,8 +381,13 @@ const fs = require('fs');
 const path = require('path');
 
 app.use(express.json());
-app.use(cors());
 app.use(fileUpload());
+app.use(cors({
+  origin: 'https://resume-builder-nwa948ev0-sachinsingh800.vercel.app', 
+  optionsSuccessStatus: 200 
+}))
+
+
 
 app.get("/", async (req, res) => {
   try {
@@ -447,7 +452,7 @@ app.listen(PORT, () => {
 
 
 
-/* 
+/*
 const puppeteer = require('puppeteer');
 const express = require('express');
 const bodyParser = require('body-parser');
